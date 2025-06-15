@@ -1,0 +1,331 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ======================================
+// ENUMS
+// ======================================
+
+enum Role {
+  user
+  admin // Assuming an admin role might exist
+}
+
+enum OfferType {
+  specialCombo
+  crazyDeal
+}
+
+// ======================================
+// COMPOSITE TYPES
+// (For Embedded Documents)
+// ======================================
+
+type Image {
+  url       String?
+  public_id String?
+}
+
+type SubCategoryImage {
+  url        String?
+  public_url String?
+}
+
+type ProductColor {
+  color String?
+  image String?
+}
+
+type ProductDetail {
+  name  String
+  value String
+}
+
+type ProductBenefit {
+  name String
+}
+
+type ProductIngredient {
+  name String
+}
+
+type ProductSize {
+  size  String
+  qty   Int
+  price Float
+  sold  Int    @default(0)
+}
+
+type SubProduct {
+  sku                String?
+  images             String[]
+  description_images String[]
+  color              ProductColor?
+  sizes              ProductSize[]
+  discount           Float?       @default(0)
+  sold               Int?         @default(0)
+}
+
+type CartProduct {
+  productId String // Kept as String to reference a product
+  name      String?
+  vendor    Json?
+  image     String?
+  size      String?
+  qty       String? // Note: This was a String in your Mongoose model
+  color     ProductColor?
+  price     Float?
+}
+
+type OrderProduct {
+  productId          String // Kept as String to reference a product
+  name               String?
+  image              String?
+  size               String?
+  qty                Int?
+  price              Float?
+  productCompletedAt DateTime?
+}
+
+type ShippingAddress {
+  firstName   String?
+  lastName    String?
+  phoneNumber String?
+  address1    String?
+  address2    String?
+  city        String?
+  state       String?
+  zipCode     String?
+  country     String?
+}
+
+type PaymentResult {
+  id     String?
+  status String?
+  email  String?
+}
+
+type Address {
+  firstName   String?
+  lastName    String?
+  phoneNumber String?
+  address1    String?
+  address2    String?
+  city        String?
+  state       String?
+  zipCode     String?
+  country     String?
+  active      Boolean  @default(true)
+}
+
+type TopBarButton {
+  text String?
+  link String?
+  textColor String
+  backgroundColor String
+}
+
+
+// ======================================
+// MODELS
+// ======================================
+
+model User {
+  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
+  email                String   @unique
+  username             String   @unique
+  role                 Role     @default(user)
+  defaultPaymentMethod String   @default("")
+  address              Address?
+
+  // Relations
+  cart    Cart?
+  orders  Order[]
+  reviews Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  title           String   @unique
+  description     String
+  longDescription String
+  brand           String?
+  slug            String   @unique
+  benefits        ProductBenefit[]
+  ingredients     ProductIngredient[]
+  rating          Float    @default(0)
+  numReviews      Int      @default(0)
+  featured        Boolean  @default(false)
+  sku             String   @unique
+  images          Image[]
+  sizes           ProductSize[]
+  discount        Float?   @default(0)
+  sold            Int?     @default(0)
+
+  // Relations
+  category      Category      @relation(fields: [categoryId], references: [id])
+  categoryId    String        @db.ObjectId
+  productSubCategories ProductSubCategory[]
+  productReviews       ProductReview[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Review {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  rating          Float    @default(0)
+  review          String
+  reviewCreatedAt DateTime
+  verified        Boolean  @default(false)
+
+  // Relations
+  reviewBy      User     @relation(fields: [reviewById], references: [id])
+  reviewById    String   @map("reviewBy") @db.ObjectId
+  productReviews ProductReview[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Explicit join model for Product and Review
+model ProductReview {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String   @db.ObjectId
+  review    Review   @relation(fields: [reviewId], references: [id])
+  reviewId  String   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, reviewId])
+}
+
+model Category {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   @unique
+  images    Image[]
+  slug      String   @unique
+
+  // Relations
+  products      Product[]
+  subCategories SubCategory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SubCategory {
+  id     String           @id @default(auto()) @map("_id") @db.ObjectId
+  name   String           @unique
+  slug   String           @unique
+  images SubCategoryImage[]
+
+  // Relations
+  parent     Category  @relation(fields: [parentId], references: [id])
+  parentId   String    @map("parent") @db.ObjectId
+  productSubCategories ProductSubCategory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Explicit join model for Product and SubCategory
+model ProductSubCategory {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  product       Product     @relation(fields: [productId], references: [id])
+  productId     String      @db.ObjectId
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
+  subCategoryId String      @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, subCategoryId])
+}
+
+model Cart {
+  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
+  products           CartProduct[]
+  cartTotal          Float?
+  totalAfterDiscount Float?
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id                  String          @id @default(auto()) @map("_id") @db.ObjectId
+  products            OrderProduct[]
+  shippingAddress     ShippingAddress?
+  paymentMethod       String?
+  paymentResult       PaymentResult?
+  total               Float
+  status              String?         @default("Not Processed")
+  totalBeforeDiscount Float?
+  couponApplied       String?
+  shippingPrice       Float           @default(0)
+  taxPrice            Float?          @default(0)
+  isPaid              Boolean         @default(false)
+  totalSaved          Float?
+  razorpay_order_id   String?
+  razorpay_payment_id String?
+  paidAt              DateTime?
+  deliveredAt         DateTime?
+  isNew               Boolean         @default(true)
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Coupon {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  coupon    String   @unique
+  startDate String // Kept as String to match Mongoose schema
+  endDate   String // Kept as String to match Mongoose schema
+  discount  Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HomeScreenOffer {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  link      String
+  type      OfferType
+  images    Image[]
+}
+
+model TopBar {
+  id     String        @id @default(auto()) @map("_id") @db.ObjectId
+  title  String
+  link   String
+  textColor String
+  backgroundColor String?
+  button TopBarButton?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
