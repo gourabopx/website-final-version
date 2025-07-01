@@ -22,22 +22,12 @@ function generateVerificationCode() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
-// Store verification codes in memory (you might want to use Redis in production)
-const verificationCodes = new Map<
-  string,
-  { code: string; timestamp: number }
->();
+// Verification codes are stored in the database via the `VerificationCode` model
 
 export async function initiateAuth(email: string, username: string) {
   try {
     // Generate verification code
     const code = generateVerificationCode();
-
-    // Store the code with timestamp
-    verificationCodes.set(email, {
-      code,
-      timestamp: Date.now(),
-    });
 
     // Render email template and await the result
     const emailHtml = await render(
@@ -55,6 +45,19 @@ export async function initiateAuth(email: string, username: string) {
       html: emailHtml,
     });
 
+    // Persist or update verification code in the database (upsert by unique email)
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30-minute expiry
+
+    await prisma.verificationCode.upsert({
+      where: { email },
+      update: { code, expiresAt },
+      create: {
+        email,
+        code,
+        expiresAt,
+      },
+    });
+
     return { success: true };
   } catch (error) {
     console.error("Error initiating auth:", error);
@@ -68,24 +71,25 @@ export async function verifyCode(
   code: string
 ) {
   try {
-    const storedData = verificationCodes.get(email);
+    const record = await prisma.verificationCode.findUnique({
+      where: { email },
+    });
 
-    if (!storedData) {
+    if (!record) {
       return { success: false, error: "Verification code expired" };
     }
 
-    if (Date.now() - storedData.timestamp > 30 * 60 * 1000) {
-      // 30 minutes
-      verificationCodes.delete(email);
+    if (record.expiresAt < new Date()) {
+      await prisma.verificationCode.delete({ where: { email } });
       return { success: false, error: "Verification code expired" };
     }
 
-    if (storedData.code !== code) {
+    if (record.code !== code) {
       return { success: false, error: "Invalid verification code" };
     }
 
-    // Code is valid, clean up
-    verificationCodes.delete(email);
+    // Code is valid, remove record
+    await prisma.verificationCode.delete({ where: { email } });
 
     // Find or create user
     const user = await prisma.user.upsert({
@@ -129,18 +133,6 @@ export async function verifyCode(
 
 export async function resendVerificationCode(email: string, username: string) {
   try {
-    // Check if we should allow resending (30 seconds cooldown)
-    const storedData = verificationCodes.get(email);
-    if (storedData && Date.now() - storedData.timestamp < 30 * 1000) {
-      return {
-        success: false,
-        error: "Please wait before requesting a new code",
-        remainingTime: Math.ceil(
-          (30 * 1000 - (Date.now() - storedData.timestamp)) / 1000
-        ),
-      };
-    }
-
     // Generate and send new code
     return await initiateAuth(email, username);
   } catch (error) {
