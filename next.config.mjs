@@ -19,7 +19,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   experimental: {
-    serverActions: true,
+    // serverActions: true, // removed as it is enabled by default in Next 14
     serverComponentsExternalPackages: [
       "cloudinary",
       "nodemailer",
