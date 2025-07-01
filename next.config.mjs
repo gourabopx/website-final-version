@@ -18,6 +18,15 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    serverActions: true,
+    serverComponentsExternalPackages: [
+      "cloudinary",
+      "nodemailer",
+      "razorpay",
+      "stripe",
+    ],
+  },
 };
 
 export default nextConfig;
