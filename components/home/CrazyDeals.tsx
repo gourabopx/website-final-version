@@ -1,4 +1,4 @@
-import { HomeScreenOffer } from "@/lib/generated/prisma";
+import type { HomeScreenOffer } from "@prisma/client";
 import Link from "next/link";
 
 interface CrazyDealsProps {

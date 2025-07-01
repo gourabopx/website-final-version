@@ -5,7 +5,7 @@ import { Dialog } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { X } from "lucide-react";
-import { Product } from "@prisma/client";
+import type { Product } from "@prisma/client";
 import Link from "next/link";
 import { useDebounce } from "@/hooks/use-debounce";
 

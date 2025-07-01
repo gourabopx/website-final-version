@@ -1,7 +1,7 @@
 import { Star } from "lucide-react";
 import { Button } from "../ui/button";
 import Link from "next/link";
-import { Product } from "@/lib/generated/prisma";
+import type { Product } from "@prisma/client";
 
 interface ProductCardProps {
   heading: string;
