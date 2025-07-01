@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Heart } from "lucide-react";
-import { ProductSize } from "@/lib/generated/prisma";
+import { ProductSize } from "@prisma/client";
 import { useCart } from "@/store/useCart";
 import { useFavorites } from "@/store/useFavorites";
 

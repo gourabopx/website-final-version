@@ -6,7 +6,7 @@ import {
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
-import { Image } from "@/lib/generated/prisma";
+import { Image } from "@prisma/client";
 import { cn } from "@/lib/utils";
 
 interface ImageCarouselProps {
