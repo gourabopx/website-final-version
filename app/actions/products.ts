@@ -91,8 +91,6 @@ export async function getProducts(filters: ProductFilters = {}) {
         skip: (page - 1) * pageSize,
         take: pageSize,
         include: {
-          images: true,
-          sizes: true,
           productSubCategories: {
             include: {
               subCategory: true,

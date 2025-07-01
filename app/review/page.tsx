@@ -81,7 +81,7 @@ const IndividualProductReviewPage = ({}) => {
     },
   ];
 
-  const ratingCounts: any = {
+  const ratingCounts: Record<number, number> = {
     5: 58,
     4: 16,
     3: 3,
@@ -90,7 +90,7 @@ const IndividualProductReviewPage = ({}) => {
   };
 
   const totalRatings = Object.values(ratingCounts).reduce(
-    (a: any, b: any) => a + b,
+    (a, b) => a + b,
     0
   );
   const averageRating = (

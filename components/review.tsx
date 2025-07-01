@@ -85,7 +85,7 @@ const IndividualProductReviewPage = async ({
     },
   ];
 
-  const ratingCounts: any = {
+  const ratingCounts: Record<number, number> = {
     5: 58,
     4: 16,
     3: 3,

@@ -48,7 +48,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      orderId: result.data.id,
+      orderId: result.data?.id,
     });
   } catch (error) {
     console.error("Payment verification error:", error);

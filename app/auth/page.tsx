@@ -29,8 +29,12 @@ export default function AuthPage() {
   const [step, setStep] = useState<"email" | "username" | "verification">(
     "email"
   );
-  const [formData, setFormData] = useState({
-    username: "",
+  const [formData, setFormData] = useState<{
+    username?: string;
+    email: string;
+    code: string[];
+  }>({
+    username: undefined,
     email: "",
     code: ["", "", "", ""],
   });
@@ -74,9 +78,9 @@ export default function AuthPage() {
       const result = await checkEmail(formData.email);
       if (result.exists) {
         // Existing user - send verification code directly
-        const authResult = await initiateAuth(formData.email, result.username);
+        const authResult = await initiateAuth(formData.email, result.username ?? "");
         if (authResult.success) {
-          setFormData((prev) => ({ ...prev, username: result.username }));
+          setFormData((prev) => ({ ...prev, username: result.username ?? "" }));
           setStep("verification");
           startResendTimer();
           toast.success("Verification code sent to your email");
@@ -144,7 +148,7 @@ export default function AuthPage() {
 
     setIsLoading(true);
     try {
-      const result = await verifyCode(formData.email, formData.username, code);
+      const result = await verifyCode(formData.email, formData.username ?? "", code);
       if (result.success) {
         toast.success("Successfully logged in");
         router.refresh();
@@ -165,7 +169,7 @@ export default function AuthPage() {
     try {
       const result = await resendVerificationCode(
         formData.email,
-        formData.username
+        formData.username ?? ""
       );
       if (result.success) {
         startResendTimer();

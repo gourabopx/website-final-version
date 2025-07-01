@@ -18,12 +18,12 @@ interface CartStore {
   subtotal: number;
   discount: number;
   total: number;
-  appliedCoupon: string | null;
+  appliedCoupon: { coupon: string; discount: number } | null;
   addToCart: (item: Omit<CartItem, "uid">) => void;
   removeFromCart: (uid: string) => void;
   updateQuantity: (uid: string, quantity: number) => void;
   clearCart: () => void;
-  applyCoupon: (coupon: string) => void;
+  applyCoupon: (coupon: { coupon: string; discount: number }) => void;
   removeCoupon: () => void;
   calculateTotals: () => void;
 }
@@ -98,9 +98,8 @@ export const useCart = create(
           appliedCoupon: null,
         });
       },
-      applyCoupon: (coupon) => {
-        // Simple coupon logic - you can enhance this based on your needs
-        set({ appliedCoupon: coupon });
+      applyCoupon: (couponObj) => {
+        set({ appliedCoupon: couponObj });
         get().calculateTotals();
         toast.success("Coupon applied successfully");
       },
@@ -116,12 +115,11 @@ export const useCart = create(
           0
         );
 
-        // Apply discount based on coupon
-        // This is a simple implementation - you can enhance it based on your coupon logic
         let discount = 0;
-        if (get().appliedCoupon) {
-          // Example: 10% discount
-          discount = subtotal * 0.1;
+        const applied = get().appliedCoupon;
+        if (applied) {
+          // discount is a percentage
+          discount = subtotal * (applied.discount / 100);
         }
 
         const total = subtotal - discount;
