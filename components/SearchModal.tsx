@@ -10,6 +10,20 @@ import Link from "next/link";
 import { useDebounce } from "@/hooks/use-debounce";
 
 interface ProductWithDetails extends Product {
+  images: {
+    url: string | null;
+    public_id: string | null;
+  }[];
+  sizes: {
+    size: string;
+    price: number;
+    qty: number;
+    sold: number;
+  }[];
+  discount: number | null;
+  slug: string;
+  id: string;
+  title: string;
   category: {
     name: string;
   };
@@ -171,7 +185,7 @@ const SearchModal = ({ setOpen }: { setOpen: (open: boolean) => void }) => {
             placeholder="Search..."
             className="w-full mb-4"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
           />
           <div className="mb-6">
             <h3 className="text-sm font-semibold mb-2">Trending Searches</h3>
