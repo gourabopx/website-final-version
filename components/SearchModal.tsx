@@ -111,7 +111,7 @@ const SearchModal = ({ setOpen }: { setOpen: (open: boolean) => void }) => {
 
     return (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {products.map((product) => {
+        {products.map((product: ProductWithDetails) => {
           const mainImage = product.images?.[0]?.url;
           const firstSize = product.sizes?.[0];
           const discountedPrice = firstSize?.price
@@ -190,7 +190,7 @@ const SearchModal = ({ setOpen }: { setOpen: (open: boolean) => void }) => {
           <div className="mb-6">
             <h3 className="text-sm font-semibold mb-2">Trending Searches</h3>
             <div className="flex flex-wrap gap-2">
-              {trendingSearches.map((search) => (
+              {trendingSearches.map((search: string) => (
                 <Button
                   key={search}
                   variant={"outline"}

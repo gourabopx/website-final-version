@@ -1,6 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { toast } from "sonner";
+import type { StoreApi } from "zustand";
+
+type SetState<T> = StoreApi<T>["setState"];
+type GetState<T> = StoreApi<T>["getState"];
 
 export interface CartItem {
   uid: string; // productId_size_qty
@@ -30,13 +34,13 @@ interface CartStore {
 
 export const useCart = create(
   persist<CartStore>(
-    (set, get) => ({
+    (set: SetState<CartStore>, get: GetState<CartStore>): CartStore => ({
       items: [],
       subtotal: 0,
       discount: 0,
       total: 0,
       appliedCoupon: null,
-      addToCart: (item) => {
+      addToCart: (item: Omit<CartItem, "uid">) => {
         const uid = `${item.productId}_${item.size}`;
         const existingItem = get().items.find((i) => i.uid === uid);
 
@@ -46,29 +50,29 @@ export const useCart = create(
             toast.error("Cannot exceed available quantity");
             return;
           }
-          set((state) => ({
-            items: state.items.map((i) =>
+          set((state: CartStore) => ({
+            items: state.items.map((i: CartItem): CartItem =>
               i.uid === uid ? { ...i, quantity: newQuantity } : i
             ),
           }));
           get().calculateTotals();
           toast.success("Cart updated successfully");
         } else {
-          set((state) => ({
+          set((state: CartStore) => ({
             items: [...state.items, { ...item, uid }],
           }));
           get().calculateTotals();
           toast.success("Item added to cart");
         }
       },
-      removeFromCart: (uid) => {
-        set((state) => ({
-          items: state.items.filter((item) => item.uid !== uid),
+      removeFromCart: (uid: string) => {
+        set((state: CartStore) => ({
+          items: state.items.filter((item: CartItem) => item.uid !== uid),
         }));
         get().calculateTotals();
         toast.success("Item removed from cart");
       },
-      updateQuantity: (uid, quantity) => {
+      updateQuantity: (uid: string, quantity: number) => {
         const item = get().items.find((i) => i.uid === uid);
         if (!item) return;
 
@@ -82,8 +86,8 @@ export const useCart = create(
           return;
         }
 
-        set((state) => ({
-          items: state.items.map((i) =>
+        set((state: CartStore) => ({
+          items: state.items.map((i: CartItem): CartItem =>
             i.uid === uid ? { ...i, quantity } : i
           ),
         }));
@@ -98,7 +102,7 @@ export const useCart = create(
           appliedCoupon: null,
         });
       },
-      applyCoupon: (couponObj) => {
+      applyCoupon: (couponObj: { coupon: string; discount: number }) => {
         set({ appliedCoupon: couponObj });
         get().calculateTotals();
         toast.success("Coupon applied successfully");
@@ -109,9 +113,10 @@ export const useCart = create(
         toast.success("Coupon removed");
       },
       calculateTotals: () => {
-        const items = get().items;
+        const items: CartItem[] = get().items;
         const subtotal = items.reduce(
-          (sum, item) => sum + item.price * item.quantity,
+          (sum: number, item: CartItem): number =>
+            sum + item.price * item.quantity,
           0
         );
 

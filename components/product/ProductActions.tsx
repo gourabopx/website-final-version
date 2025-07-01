@@ -88,7 +88,7 @@ export default function ProductActions({
       <div className="space-y-2">
         <p className="text-sm font-medium">Select Size</p>
         <div className="flex flex-wrap gap-2">
-          {sizes.map((size) => (
+          {sizes.map((size: ProductSize) => (
             <Button
               key={size.size}
               variant={selectedSize?.size === size.size ? "default" : "outline"}

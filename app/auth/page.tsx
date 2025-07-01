@@ -195,8 +195,8 @@ export default function AuthPage() {
                 type="email"
                 placeholder="Enter your email"
                 value={formData.email}
-                onChange={(e) =>
-                  setFormData((prev) => ({
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setFormData((prev: typeof formData) => ({
                     ...prev,
                     email: e.target.value,
                   }))
@@ -218,8 +218,8 @@ export default function AuthPage() {
                 id="username"
                 placeholder="Enter a username"
                 value={formData.username}
-                onChange={(e) =>
-                  setFormData((prev) => ({
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setFormData((prev: typeof formData) => ({
                     ...prev,
                     username: e.target.value,
                   }))
@@ -238,7 +238,7 @@ export default function AuthPage() {
             <div className="space-y-2">
               <Label>Verification Code</Label>
               <div className="flex gap-2 justify-center">
-                {formData.code.map((digit, index) => (
+                {formData.code.map((digit: string, index: number) => (
                   <Input
                     key={index}
                     id={`code-${index}`}
@@ -246,7 +246,7 @@ export default function AuthPage() {
                     maxLength={1}
                     className="w-12 text-center text-lg"
                     value={digit}
-                    onChange={(e) => handleCodeChange(index, e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleCodeChange(index, e.target.value)}
                   />
                 ))}
               </div>
